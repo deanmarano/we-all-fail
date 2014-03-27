@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <style>
+    html, body {
+      font-family: sans-serif;
+      padding: 0;
+      margin: 0;
+    }
+    .header {
+      background-color: black;
+      color: white;
+    }
+
+    .add-failure {
+      font-family: sans-serif;
+      position: fixed;
+      top: 50%;
+      left: 0%;
+      right: 0%;
+      margin-top: -50px;
+      width: 100%;
+      background-color: black;
+      color: white;
+      display: none;
+    }
+
+    .shadow {
+      -webkit-box-shadow: 0px 0px 31px 30px rgba(255,255,255,1);
+      -moz-box-shadow: 0px 0px 31px 30px rgba(255,255,255,1);
+      box-shadow: 0px 0px 31px 30px rgba(255,255,255,1);
+    }
+    .add-failure input {
+      width: 80%;
+      font-size: 1em;
+      border: 0px;
+      border-bottom: 1px solid white;
+      background-color: black;
+      color: white;
+    }
+
+    .failure {
+      opacity: 0;
+      padding: 5px 25px;
+    }
+
+    .shown {
+      -webkit-animation: fadein 2s;
+      opacity: 1;
+    }
+
+    @-webkit-keyframes fadein {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .add-failure.shown {
+      -webkit-animation: fly-from-above 1.5s;
+      display: block;
+    }
+
+    @-webkit-keyframes fly-from-above {
+      from { top : 0;
+             margin-top: -88px;
+      }
+      to   {
+        top: 50%;
+        margin-top: -50px; }
+    }
+
+    .failure h1 {
+      white-space: nowrap;
+    }
+
+    .meta {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+    }
+
+    .failures {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+  </style>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src='https://cdn.firebase.com/v0/firebase.js'></script>
+<script type='text/javascript' src='https://cdn.firebase.com/js/simple-login/1.3.0/firebase-simple-login.js'></script>
+  <script>
+$(function() {
+  $.fn.isOnScreen = function(){
+
+    var win = $(window);
+
+    var viewport = {
+        top : win.scrollTop(),
+        left : win.scrollLeft()
+    };
+    viewport.right = viewport.left + win.width();
+    viewport.bottom = viewport.top + win.height();
+
+    var bounds = this.offset();
+    bounds.right = bounds.left + this.outerWidth();
+    bounds.bottom = bounds.top + this.outerHeight();
+
+    return (!(viewport.right < bounds.left || viewport.left > bounds.right || viewport.bottom < bounds.top || viewport.top > bounds.bottom));
+
+};
+
+  var template = $('.template').html();
+  $('.template').remove();
+
+  window.showNext = function() {
+    var hiddenFailures = $('.failure:not(.shown)');
+    var visible = hiddenFailures.filter(function(_, e) { return $(e).isOnScreen(); });
+    if(hiddenFailures.length > 0) {
+      var failure = $((visible.length > 0 ? visible : hiddenFailures)[Math.floor(Math.random() * hiddenFailures.length)]);
+      failure.addClass('shown');
+      failure.removeClass('invisible');
+    }
+    window.setTimeout(window.showNext, 2000);
+    }
+  window.setTimeout(window.showNext, 2000);
+
+  window.db = new Firebase('crackling-fire-6829.firebaseIO.com');
+  window.failuresDb = new Firebase('crackling-fire-6829.firebaseIO.com/failures');
+  failuresDb.on('child_added', function(snapshot) {
+    var mainDiv = $('.failures');
+    var failure = snapshot.val();
+    var html = template.
+      replace('{{failure}}', failure.text).
+      replace('{{count}}', failure.meToos);
+    mainDiv.append(html);
+    });
+  var auth = new FirebaseSimpleLogin(db, function(error, user) {
+  if (error) {
+      // an error occurred while attempting login
+      console.log('error');
+      console.log(error);
+    } else if (user) {
+      window.user = user;
+      console.log('logged in');
+      console.log(user);
+    } else {
+  console.log('logged out');
+      // user is logged out
+    }
+  });
+  $('#share').on('click', function() {
+      $('.add-failure').toggleClass('shown');
+      });
+
+  $('.add-failure input').on('keyup', function(e) {
+
+    if(e.keyCode === 13) {
+      var failure = "I " + $(e.currentTarget).val();
+      window.failuresDb.push({text: failure, userId: window.user.id, meToos: 0});
+      $('.add-failure').removeClass('shown');
+      $(e.currentTarget).val("");
+    }
+  });
+
+  $('#signup').on('click', function() {
+    var email = $('#email').val();
+    var password = $('#password').val();
+
+    auth.createUser(email, password, function(error, user) {
+      if (error) {
+        console.log(error);
+        } else {
+        auth.login('password', {email: email, password: password});
+        console.log(user);
+        }
+    });
+  });
+
+  $('#login').on('click', function() {
+    var email = $('#email').val();
+    var password = $('#password').val();
+
+    auth.login('password', {email: email, password: password});
+  });
+});
+  </script>
+  </head>
+<body>
+<div class="header">
+  <div class="meta">
+    <h1>We all fail. Sharing makes it easier. <a id="share" href="#">Share yours.</a></h1>
+    <div>
+      <input id="email" type="textbox" />
+      <input id="password" type="password" />
+      <button id="login">Login</button>
+      <button id="signup">Sign Up</button>
+    </div>
+  </div>
+</div>
+
+<div class="failures">
+  <div class="template">
+    <div class="failure invisible">
+      <h1>{{failure}}</h1>
+      <div class="meta">
+        <div>{{count}} humans <a href="#">me too</a></div>
+        <div><a href="#">talk</a></div>
+        <div>yesterday</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="add-failure">
+  <h1>I failed. I <input type="textbox" /></h1>
+</div>
+</body>
+</html>
