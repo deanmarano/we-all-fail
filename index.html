@@ -13,6 +13,20 @@
       background-color: black;
       color: white;
     }
+    .header .logged-in {
+      display: none;
+    }
+    .header .controls {
+      margin: 30px;
+    }
+
+    a {
+      color: #3498db;
+    }
+
+    #share {
+      display: none;
+    }
 
     .add-failure {
       font-family: sans-serif;
@@ -88,7 +102,7 @@
     }
 
   </style>
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
   <script src='https://cdn.firebase.com/v0/firebase.js'></script>
 <script type='text/javascript' src='https://cdn.firebase.com/js/simple-login/1.3.0/firebase-simple-login.js'></script>
   <script>
@@ -146,8 +160,18 @@ $(function() {
       window.user = user;
       console.log('logged in');
       console.log(user);
+      $('.header .login').hide();
+      $('.header .logged-in').show();
+      $('.header .username').text(user.email);
+      $('.header #suggest-login').hide();
+      $('.header #share').show();
     } else {
   console.log('logged out');
+      $('.header .login').show();
+      $('.header .login #password').val();
+      $('.header .logged-in').hide();
+      $('.header #suggest-login').show();
+      $('.header #share').hide();
       // user is logged out
     }
   });
@@ -185,18 +209,31 @@ $(function() {
 
     auth.login('password', {email: email, password: password});
   });
+
+  $('#logout').on('click', function() {
+    auth.logout();
+  });
 });
   </script>
   </head>
 <body>
 <div class="header">
   <div class="meta">
-    <h1>We all fail. Sharing makes it easier. <a id="share" href="#">Share yours.</a></h1>
-    <div>
-      <input id="email" type="textbox" />
-      <input id="password" type="password" />
-      <button id="login">Login</button>
-      <button id="signup">Sign Up</button>
+    <h1>We all fail. Sharing helps.
+      <a id="suggest-login" href="#">Login to share.</a>
+      <a id="share" href="#">Share your failure.</a>
+    </h1>
+    <div class="controls">
+      <div class="login">
+        <input id="email" type="textbox" />
+        <input id="password" type="password" />
+        <button id="login">Login</button>
+        <button id="signup">Sign Up</button>
+      </div>
+      <div class="logged-in">
+        <span class="username"></span>
+        <a id="logout" href="#">Logout</a>
+      </div>
     </div>
   </div>
 </div>
