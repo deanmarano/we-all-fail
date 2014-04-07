@@ -1,0 +1,100 @@
+html, body {
+  font-family: sans-serif;
+  padding: 0;
+  margin: 0;
+}
+.header {
+  background-color: black;
+  color: white;
+}
+.header .logged-in {
+  display: none;
+}
+.header .controls {
+  margin: 30px;
+}
+
+a {
+  color: #3498db;
+}
+
+#share {
+  display: none;
+}
+
+.add-failure {
+  font-family: sans-serif;
+  position: fixed;
+  top: 50%;
+  left: 0%;
+  right: 0%;
+  margin-top: -50px;
+  width: 100%;
+  background-color: black;
+  color: white;
+  display: none;
+}
+
+.shadow {
+  -webkit-box-shadow: 0px 0px 31px 30px rgba(255,255,255,1);
+  -moz-box-shadow: 0px 0px 31px 30px rgba(255,255,255,1);
+  box-shadow: 0px 0px 31px 30px rgba(255,255,255,1);
+}
+.add-failure input {
+  width: 80%;
+  font-size: 1em;
+  border: 0px;
+  border-bottom: 1px solid white;
+  background-color: black;
+  color: white;
+}
+
+.failure {
+  opacity: 0;
+  padding: 5px 25px;
+}
+
+.shown {
+  -webkit-animation: fadein 2s;
+  opacity: 1;
+}
+
+@-webkit-keyframes fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.add-failure.shown {
+  -webkit-animation: fly-from-above 1.5s;
+  display: block;
+}
+
+@-webkit-keyframes fly-from-above {
+  from { top : 0;
+          margin-top: -88px;
+  }
+  to   {
+    top: 50%;
+    margin-top: -50px; }
+}
+
+.failure h1 {
+  white-space: nowrap;
+}
+
+.meta {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.failures {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
