@@ -2,12 +2,19 @@ window.Fail = Ember.Application.create();
 
 Fail.Router.map(function() {
   this.resource('failures', { path: '/' });
+  this.resource('failure', { path: '/failures/:id' });
   this.route('about', { path: '/about' });
 });
 
 Fail.FailuresRoute = Ember.Route.extend({
   model: function() {
     return this.store.find("failure");
+  }
+});
+
+Fail.FailureRoute = Ember.Route.extend({
+  model: function(params) {
+    return this.store.find("failure", params.id);
   }
 });
 
