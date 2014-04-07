@@ -4,249 +4,80 @@
   <meta charset="UTF-8">
   <title></title>
   <link rel="stylesheet" href="/style.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.5.1/moment.min.js"></script>
-  <script src='https://cdn.firebase.com/v0/firebase.js'></script>
-<script type='text/javascript' src='https://cdn.firebase.com/js/simple-login/1.3.0/firebase-simple-login.js'></script>
-  <script>
-$(function() {
-  $.fn.isOnScreen = function(){
-
-    var win = $(window);
-
-    var viewport = {
-        top : win.scrollTop(),
-        left : win.scrollLeft()
-    };
-    viewport.right = viewport.left + win.width();
-    viewport.bottom = viewport.top + win.height();
-
-    var bounds = this.offset();
-    bounds.right = bounds.left + this.outerWidth();
-    bounds.bottom = bounds.top + this.outerHeight();
-
-    return (!(viewport.right < bounds.left || viewport.left > bounds.right || viewport.bottom < bounds.top || viewport.top > bounds.bottom));
-
-};
-
-  var template = $('.template').html();
-  $('.template').remove();
-
-  window.showNext = function() {
-    var hiddenFailures = $('.failure:not(.shown)');
-    var visible = hiddenFailures.filter(function(_, e) { return $(e).isOnScreen(); });
-    if(hiddenFailures.length > 0) {
-      var failure = $((visible.length > 0 ? visible : hiddenFailures)[Math.floor(Math.random() * hiddenFailures.length)]);
-      failure.addClass('shown');
-      failure.removeClass('invisible');
-    }
-    window.setTimeout(window.showNext, 1500);
-    }
-  window.setTimeout(window.showNext, 1000);
-
-  window.db = new Firebase('crackling-fire-6829.firebaseIO.com');
-  window.localFailures = {};
-  window.failuresDb = new Firebase('crackling-fire-6829.firebaseIO.com/failures');
-  failuresDb.limit(10).on('child_added', function(snapshot) {
-    var mainDiv = $('.failures');
-    var failure = snapshot.val();
-    window.localFailures[snapshot.name()] = failure;
-    var html = failureTemplate(snapshot);
-    mainDiv.prepend(html);
-    });
-
-  function failureTemplate(snapshot) {
-    var failure = snapshot.val();
-    return template.
-      replace('{{failure}}', failure.text).
-      replace('{{count}}', (failure.meToos).length).
-      replace('{{when}}', moment(failure.at).fromNow()).
-      replace('{{id}}', snapshot.name());
-  }
-  failuresDb.on('child_changed', function(snapshot) {
-    if(window.localFailures[snapshot.name()]) {
-      var failureNode = $('[data-id="' + snapshot.name() + '"]');
-      failureNode.replaceWith(failureTemplate(snapshot));
-      $('[data-id="' + snapshot.name() + '"]').
-        removeClass('invisible').
-        addClass('shown');
-    }
-  });
-
-  var auth = new FirebaseSimpleLogin(db, function(error, user) {
-      window.user = undefined;
-  if (error) {
-      console.log('error');
-      console.log(error);
-    } else if (user) {
-      window.user = user;
-      $('.header .login').addClass('display-none');
-      $('.header .logged-in').removeClass('display-none');
-      $('.header .username').text(user.email);
-      $('.header #suggest-login').addClass('display-none');
-      $('.header #share').removeClass('display-none');
-    } else {
-      $('.header .login').removeClass('display-none');
-      $('.header .logged-in').addClass('display-none');
-      $('.header #suggest-login').addClass('display-none');
-      $('.header #share').removeClass('display-none');
-      // user is logged out
-    }
-  });
-  $('#share').on('click', function() {
-    $('.add-failure').toggleClass('shown');
-  });
-
-  $('.add-failure input').on('keyup', function(e) {
-    var failure = "I " + $(e.currentTarget).val();
-    var charsRemaining = 160 - failure.length;
-    var template = '<span class="{{class}}">{{charsRemaining}} left</span>';
-    var html = template.replace('{{class}}', charsRemaining > 0 ? '' : 'too-long').
-    replace('{{charsRemaining}}', charsRemaining);
-    $('.add-failure #charsRemaining').html(html);
-
-    if(e.keyCode === 13 && charsRemaining >= 0) { //enter
-      window.failuresDb.push({text: failure, userId: window.user.id, meToos: [], at: Firebase.ServerValue.TIMESTAMP, meToos: [window.user.id]});
-      $('.add-failure').removeClass('shown');
-      $(e.currentTarget).val("");
-    }
-
-    if(e.keyCode === 27) { //esc
-      $('.add-failure').removeClass('shown');
-      $(e.currentTarget).val("");
-    }
-  });
-
-  function showSignUp(newUser) {
-    $('.returning-user').toggleClass('display-none', newUser);
-    $('.new-user').toggleClass('display-none', !newUser);
-  }
-
-  $('#signup-link').on('click', function() {
-    showSignUp(true);
-  });
-
-  $('#login-link').on('click', function() {
-    showSignUp(false);
-  });
-
-  $('#signup').on('click', function() {
-    signUp();
-  });
-
-  function signUp() {
-    var email = $('#email').val();
-    var password = $('#password').val();
-
-    $('#email').val('Signing Up...');
-    $('#password').val('');
-
-    auth.createUser(email, password, function(error, user) {
-      $('#email').val('');
-      if (error) {
-        console.log(error);
-        } else {
-        auth.login('password', {email: email, password: password});
-        console.log(user);
-        }
-    });
-  }
-
-  $('#password').on('keyup', function(e) {
-    if(e.keyCode === 13) { //enter
-      if($('returning-user').hasClass('display-none')) { // new user
-        signUp();
-      } else {
-        login();
-      }
-    }
-  });
-
-  $('#login').on('click', function() {
-      login();
-  });
-
-  function login() {
-    var email = $('#email').val();
-    var password = $('#password').val();
-    $('#email').val('Logging In...');
-    $('#password').val('');
-
-    auth.login('password', {email: email, password: password}, function() {
-      $('#email').val('');
-    });
-  }
-
-  $('#logout').on('click', function() {
-    auth.logout();
-  });
-
-  $('#about-link').on('click', function() {
-      $('.about').removeClass('display-none');
-      $('.failures').addClass('display-none');
-  });
-
-  $('.failures').on('click', '#me-too-link', function(e) {
-      if(window.user === undefined) {
-      return;
-      }
-      var id = $(e.currentTarget).parents('.failure').data('id');
-      var reference = failuresDb.child(id);
-      data = window.localFailures[id];
-      data.meToos.push(window.user.id + "");
-      data.meToos = $.unique(data.meToos);
-      reference.set(data);
-  });
-});
-  </script>
-  </head>
+  <script type='text/javascript' src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.5.1/moment.min.js"></script>
+  <script type='text/javascript' src='https://cdn.firebase.com/v0/firebase.js'></script>
+  <script type='text/javascript' type='text/javascript' src='https://cdn.firebase.com/js/simple-login/1.3.0/firebase-simple-login.js'></script>
+  <script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.3.0/handlebars.min.js'></script>
+  <script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/ember.js/1.5.0/ember.min.js'></script>
+  <script src="http://builds.emberjs.com/canary/ember-data.js"></script>
+  <script src="/emberfire.js"></script>
+  <script type='text/javascript' src='/app.js'></script>
+</head>
 <body>
+
+<script type="text/x-handlebars" data-template-name="failures">
+  <div class="failures">
+  {{#each}}
+    {{render "failure-brief" this}}
+  {{/each}}
+  </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="failure-brief">
+  <div class="failure" data-id="{{id}}">
+    <h1>{{text}}</h1>
+    <div class="meta">
+      <div>{{meTooCount}} {{humans}} <a href="#" {{action 'meToo' this}}>me too</a></div>
+      <!--<div><a href="#" class="talk">talk</a></div>-->
+      <div>{{prettyAt}}</div>
+    </div>
+  </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="application">
 <div class="header">
   <div class="meta">
     <h1>We all fail. Sharing helps.
-      <a id="suggest-login" href="#">Login to share.</a>
-      <a id="share" class="display-none" href="#">Share your failure.</a>
+      {{#if user}}
+        <a href="#" {{action 'toggleProperty' 'addFailureShown'}}>Share your failure.</a>
+      {{else}}
+        Login to share.
+      {{/if}}
     </h1>
     <div class="controls">
-      <div class="login">
-        <input id="email" type="textbox" placeholder="Email"/>
-        <input id="password" type="password" placeholder="Password"/>
-        <span class="returning-user">
-          <button id="login">Login</button>
+      {{#if user}}
+        {{user.email}}
+        <a href="#" {{action 'logout'}}>Logout</a>
+      {{else}}
+        {{input value=email placeholder="Email"}}
+        {{input value=password action='passwordEnter' onEvent='keypress' type="password" placeholder="Password"}}
+        {{#if signingUp}}
+          <button {{action 'signUp'}}>Sign Up</button>
           or
-          <a href="#" id="signup-link">Sign Up</a>
-        </span>
-        <span class="new-user display-none">
-          <button id="signup">Sign Up</button>
+          <a href="#" {{action 'toggleProperty' 'signingUp'}}>Login</a>
+        {{else}}
+          <button {{action 'logIn'}}>Login</button>
           or
-          <a href="#" id="login-link">Login</a>
-        </span>
-      </div>
-      <div class="logged-in display-none">
-        <span class="username"></span>
-        <a id="logout" href="#">Logout</a>
-      </div>
+          <a href="#" {{action 'toggleProperty' 'signingUp'}}>Sign Up</a>
+        {{/if}}
+      {{/if}}
     </div>
   </div>
 </div>
 
 <div class="main">
-  <div class="failures">
-    <div class="template">
-      <div class="failure invisible" data-id="{{id}}">
-        <h1>{{failure}}</h1>
-        <div class="meta">
-          <div>{{count}} humans <a id="me-too-link" href="#">me too</a></div>
-          <div><a href="#" class="talk">talk</a></div>
-          <div>{{when}}</div>
-        </div>
-      </div>
-    </div>
+  {{outlet}}
+  <div {{bind-attr class=":add-failure addFailureShown:shown"}}>
+    <h1>I failed. I {{input action='addFailure' onEvent="keypress" value=newFailure class="newFailure"}} {{charsRemaining}} left</span></h1>
   </div>
-  <div class="add-failure">
-    <h1>I failed. I <input type="textbox" /><span id="charsRemaining">158 left</span></h1>
-  </div>
-  <div class="about text-center display-none">
+</div>
+<div class="footer text-center">
+  made by <a href="https://twitter.com/pleiadeez">Dean</a>. {{#link-to 'about'}}What is this?{{/link-to}}
+</div>
+</script>
+<script type="text/x-handlebars" data-template-name="about">
+  <div class="about text-center">
     Over the course of the last few months, I've been thinking about failure a lot.
     It started with <a href="http://www.ted.com/talks/brene_brown_on_vulnerability">a video</a> 
     by Brené Brown about why vulnerability is important. Then, a friend of mine <a href="http://amargaretputt.wordpress.com/2014/03/11/the-lenten-diaries-falling-off-the-wagon/">
@@ -268,13 +99,10 @@ $(function() {
         <span class="short">Let go.</span> This is a safe place for you to share. It only works if you're willing.
       </li>
       <li>
-      <span class="short"><a href="/">Let's start sharing.</a></span>
+      <span class="short">{{#link-to 'failures'}}Let's start sharing.{{/link-to}}</span>
       </li>
     </ul>
   </div>
-</div>
-<div class="footer text-center">
-  made by <a href="https://twitter.com/pleiadeez">Dean</a>. <a id="about-link" href="#">What is this?</a>
-</div>
+</script>
 </body>
 </html>

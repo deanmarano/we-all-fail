@@ -5,7 +5,7 @@ html, body {
   height: 100%;
 }
 
-body {
+body > .ember-view {
   display: -webkit-flex;
   -webkit-flex-direction: column;
   height: 100%;
