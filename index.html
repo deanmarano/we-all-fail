@@ -29,7 +29,18 @@
     <h1>{{text}}</h1>
     <div class="meta">
       <div>{{meTooCount}} {{humans}} <a href="#" {{action 'meToo' this}}>me too</a></div>
-      <!--<div><a href="#" class="talk">talk</a></div>-->
+      <div>{{#link-to "failure" this class="talk"}}Talk{{/link-to}}</div>
+      <div>{{prettyAt}}</div>
+    </div>
+  </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="failure">
+  <div class="failure" data-id="{{id}}">
+    <h1>{{text}}</h1>
+    <div class="meta">
+      <div>{{meTooCount}} {{humans}} <a href="#" {{action 'meToo' this}}>me too</a></div>
+      <div>{{#link-to "failure" this class="talk"}}Talk{{/link-to}}</div>
       <div>{{prettyAt}}</div>
     </div>
   </div>
