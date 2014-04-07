@@ -2,24 +2,45 @@ html, body {
   font-family: sans-serif;
   padding: 0;
   margin: 0;
+  height: 100%;
 }
-.header {
+
+body {
+  display: -webkit-flex;
+  -webkit-flex-direction: column;
+  height: 100%;
+}
+
+.header, .footer {
   background-color: black;
   color: white;
 }
-.header .logged-in {
-  display: none;
+
+.header {
+  padding-bottom: 15px;
 }
+
+.footer {
+  padding: 5px;
+
+}
+
+
+
 .header .controls {
   margin: 30px;
 }
 
-a {
-  color: #3498db;
+.text-center {
+  text-align: center;
 }
 
-#share {
-  display: none;
+.display-none {
+  display: none !important;
+}
+
+a {
+  color: #3498db;
 }
 
 .add-failure {
@@ -54,6 +75,14 @@ a {
   padding: 5px 25px;
 }
 
+.failure h1 {
+  text-align: center;
+}
+
+.failure .talk {
+  margin: 0 10px;
+}
+
 .shown {
   -webkit-animation: fadein 2s;
   opacity: 1;
@@ -71,11 +100,11 @@ a {
 
 @-webkit-keyframes fly-from-above {
   from { top : 0;
-          margin-top: -88px;
+    margin-top: -88px;
   }
   to   {
     top: 50%;
-    margin-top: -50px; }
+  margin-top: -50px; }
 }
 
 .failure h1 {
@@ -87,14 +116,55 @@ a {
   flex-direction: row;
   justify-content: space-between;
 }
+.main {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  height: 100%;
+  width: 100%;
+}
 
 .failures {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
-  max-width: 1200px;
+  max-width: 1300px;
   margin-left: auto;
   margin-right: auto;
 }
 
+#container {
+  display: -webkit-flex;
+  -webkit-flex-direction: column;
+  height: 100%;
+
+  width: 100%;
+  background-color: red;
+}
+
+.about {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 750px;
+  padding: 20px 0;
+}
+
+#its-ok {
+  font-size: 50px;
+  text-decoration: underline;
+}
+
+#rules-header {
+  margin-bottom: 0px;
+}
+
+.rules {
+  list-style-type: none;
+  padding: 0px;
+  margin-top: 0px;
+}
+
+.rules .short {
+  font-size: 24px;
+  font-weight: bold;
+}
